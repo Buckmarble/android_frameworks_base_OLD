@@ -133,7 +133,7 @@ public class CmCircleBattery extends ImageView {
                 // after a full night of charging and dont have a closed circle.
                 // Given a lot of Samsung devices stop charging at approx 97%,
                 // we will never see a full circle.
-                if (mLevel>=97)
+                if (mLevel>=99)
                     mLevel=100;
 
                 if(mActivated && mAttached)
