@@ -282,8 +282,12 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
     };
 
     private boolean mLinkNotificationWithVolume;
+    private static final int HEADSET_VOLUME_RESTORE_CAP_MUSIC = 8; // Out of 15
+    private static final int HEADSET_VOLUME_RESTORE_CAP_OTHER = 4; // Out of 7
 
     private final AudioSystem.ErrorCallback mAudioSystemCallback = new AudioSystem.ErrorCallback() {
+
+     private final AudioSystem.ErrorCallback mAudioSystemCallback = new AudioSystem.ErrorCallback() {
         public void onError(int error) {
             switch (error) {
             case AudioSystem.AUDIO_STATUS_SERVER_DIED:
@@ -1188,6 +1192,31 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
     public void setStreamMute(int streamType, boolean state, IBinder cb) {
         if (isStreamAffectedByMute(streamType)) {
             mStreamStates[streamType].mute(cb, state);
+        }
+    }
+
+    /**
+    * @see AudioManager#toggleGlobalMute()
+    * @hide
+    */
+    public void toggleGlobalMute() {
+        int currentMode = getRingerMode();
+
+        if (currentMode == RINGER_MODE_VIBRATE || currentMode == RINGER_MODE_SILENT) {
+            setRingerMode(RINGER_MODE_NORMAL);
+
+        } else {
+            int ringerMode = mHasVibrator ? RINGER_MODE_VIBRATE : RINGER_MODE_SILENT;
+            setRingerMode(ringerMode);
+        }
+
+        if (mVolumePanel != null) {
+            int streamType = getActiveStreamType(AudioManager.USE_DEFAULT_STREAM_TYPE);
+            if (streamType == STREAM_REMOTE_MUSIC) {
+                streamType = AudioManager.STREAM_MUSIC;
+            }
+            mVolumePanel.postMuteChanged(streamType,
+                    AudioManager.FLAG_SHOW_UI | AudioManager.FLAG_VIBRATE);
         }
     }
 
@@ -3594,7 +3623,7 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                         sendMsg(mAudioHandler, MSG_REPORT_NEW_ROUTES,
                                 SENDMSG_NOOP, 0, 0, null, 0);
                     }
-                }
+                }				
             } else if (!isConnected && state == BluetoothProfile.STATE_CONNECTED) {
                 if (btDevice.isBluetoothDock()) {
                     // this could be a reconnection after a transient disconnection
@@ -3844,6 +3873,26 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                             resetBluetoothSco();
                         }
                     }
+                }
+            } else if (action.equals(Intent.ACTION_HEADSET_PLUG)) {
+                state = intent.getIntExtra("state", 0);
+                if (state == 1) {
+                    // Headset plugged in
+                    // Avoid connection glitches
+		
+		    // Media colume restore capping
+                    final boolean capVolumeRestore = Settings.System.getInt(mContentResolver,
+                            Settings.System.SAFE_HEADSET_VOLUME_RESTORE, 1) == 1;
+                    if (capVolumeRestore) {
+                                final int volume = getStreamVolume(AudioSystem.STREAM_MUSIC);
+				if (volume > HEADSET_VOLUME_RESTORE_CAP_MUSIC) {
+				    setStreamVolume(AudioSystem.STREAM_MUSIC,
+					    HEADSET_VOLUME_RESTORE_CAP_MUSIC, 0);
+                        }
+                    }
+                } else {
+                    // Headset disconnected
+                    //Avoid disconnection glitches
                 }
             } else if (action.equals(Intent.ACTION_USB_AUDIO_ACCESSORY_PLUG) ||
                            action.equals(Intent.ACTION_USB_AUDIO_DEVICE_PLUG)) {
