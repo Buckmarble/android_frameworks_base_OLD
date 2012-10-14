@@ -116,6 +116,8 @@ class BatteryService extends Binder {
     private boolean mLastBatteryLevelCritical;
     private int mLastInvalidCharger;
 
+    private boolean mHasDockBattery;
+
     private int mDockBatteryStatus;
     private int mDockBatteryLevel;
     private boolean mDockBatteryPresent;
