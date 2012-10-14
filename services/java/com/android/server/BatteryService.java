@@ -164,7 +164,7 @@ class BatteryService extends Binder {
                 com.android.internal.R.integer.config_lowBatteryCloseWarningLevel);
 
         mHasDockBattery = mContext.getResources().getBoolean(
-                com.android.internal.R.bool.config_mHasDockBattery);
+                com.android.internal.R.bool.config_hasDockBattery);
 
         mPowerSupplyObserver.startObserving("SUBSYSTEM=power_supply");
 
