@@ -49,6 +49,11 @@ struct FieldIds {
     jfieldID mBatteryVoltage;
     jfieldID mBatteryTemperature;
     jfieldID mBatteryTechnology;
+#ifdef HAS_DOCK_BATTERY
+    jfieldID mDockBatteryStatus;
+    jfieldID mDockBatteryLevel;
+    jfieldID mDockBatteryPresent;
+#endif
 };
 static FieldIds gFieldIds;
 
@@ -224,25 +229,26 @@ static void android_server_BatteryService_update(JNIEnv* env, jobject obj)
     setBooleanField(env, obj, gPaths.acOnlinePath, gFieldIds.mAcOnline);
     setBooleanField(env, obj, gPaths.usbOnlinePath, gFieldIds.mUsbOnline);
     setBooleanField(env, obj, gPaths.batteryPresentPath, gFieldIds.mBatteryPresent);
-    
+
     setIntField(env, obj, gPaths.batteryCapacityPath, gFieldIds.mBatteryLevel);
     setVoltageField(env, obj, gPaths.batteryVoltagePath, gFieldIds.mBatteryVoltage);
     setIntField(env, obj, gPaths.batteryTemperaturePath, gFieldIds.mBatteryTemperature);
-    
+
     const int SIZE = 128;
     char buf[SIZE];
-    
+
     if (readFromFile(gPaths.batteryStatusPath, buf, SIZE) > 0)
         env->SetIntField(obj, gFieldIds.mBatteryStatus, getBatteryStatus(buf));
     else
         env->SetIntField(obj, gFieldIds.mBatteryStatus,
                          gConstants.statusUnknown);
-    
+
     if (readFromFile(gPaths.batteryHealthPath, buf, SIZE) > 0)
         env->SetIntField(obj, gFieldIds.mBatteryHealth, getBatteryHealth(buf));
 
     if (readFromFile(gPaths.batteryTechnologyPath, buf, SIZE) > 0)
         env->SetObjectField(obj, gFieldIds.mBatteryTechnology, env->NewStringUTF(buf));
+
 #ifdef HAS_DOCK_BATTERY
     jboolean present = false;
     if (readFromFile(gPaths.dockBatteryPresentPath, buf, SIZE) >= 15) {
