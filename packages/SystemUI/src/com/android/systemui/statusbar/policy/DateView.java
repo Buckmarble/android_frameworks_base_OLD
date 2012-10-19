@@ -33,7 +33,7 @@ import android.util.Slog;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewParent;
 import android.widget.TextView;
 
@@ -41,12 +41,13 @@ import com.android.systemui.R;
 
 import java.util.Date;
 
-public final class DateView extends LinearLayout implements OnClickListener, OnLongClickListener {
+public final class DateView extends LinearLayout implements OnClickListener, OnTouchListener {
     private static final String TAG = "DateView";
 
     private boolean mAttachedToWindow;
     private boolean mWindowVisible;
     private boolean mUpdating;
+    private int mDefaultColor;
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -138,7 +139,11 @@ public final class DateView extends LinearLayout implements OnClickListener, OnL
         }
     }
 
-    private void collapseStartActivity(Intent what) {
+    @Override
+    public void onClick(View v) {
+        mDate.setTextColor(mDefaultColor);
+        mDoW.setTextColor(mDefaultColor);
+
         // collapse status bar
         StatusBarManager statusBarManager = (StatusBarManager) getContext().getSystemService(
                 Context.STATUS_BAR_SERVICE);
@@ -151,13 +156,7 @@ public final class DateView extends LinearLayout implements OnClickListener, OnL
             // no action needed here
         }
 
-        // start activity
-        what.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mContext.startActivity(what);
-    }
-
-    @Override
-    public void onClick(View v) {
+        // start calendar - today is selected
         long nowMillis = System.currentTimeMillis();
 
         Uri.Builder builder = CalendarContract.CONTENT_URI.buildUpon();
@@ -165,16 +164,22 @@ public final class DateView extends LinearLayout implements OnClickListener, OnL
         ContentUris.appendId(builder, nowMillis);
         Intent intent = new Intent(Intent.ACTION_VIEW)
                 .setData(builder.build());
-        collapseStartActivity(intent);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mContext.startActivity(intent);
     }
 
     @Override
-    public boolean onLongClick(View v) {
-        Intent intent = new Intent("android.settings.DATE_SETTINGS");
-        intent.addCategory(Intent.CATEGORY_DEFAULT);
-        collapseStartActivity(intent);
-
-        // consume event
-        return true;
+    public boolean onTouch(View v, MotionEvent event) {
+        int a = event.getAction();
+        if (a == MotionEvent.ACTION_DOWN) {
+            int cTouch = getResources().getColor(com.android.internal.R.color.holo_blue_light);
+            mDate.setTextColor(cTouch);
+            mDoW.setTextColor(cTouch);
+        } else if (a == MotionEvent.ACTION_CANCEL || a == MotionEvent.ACTION_UP) {
+            mDate.setTextColor(mDefaultColor);
+            mDoW.setTextColor(mDefaultColor);
+        }
+        // never consume touch event, so onClick is propperly processed
+        return false;
     }
 }
