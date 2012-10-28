@@ -60,8 +60,7 @@ public class CmCircleBattery extends ImageView {
     private boolean mPercentage;    // whether or not to show percentage number
     private boolean mIsCharging;    // whether or not device is currently charging
     private int     mLevel;         // current battery level
-    private int     mAnimOffset;    // current level of charging animation
-    private boolean mIsAnimating;   // stores charge-animation status to reliably remove callbacks
+    private int     mAnimLevel;     // current level of charging animation
 
     private int     mCircleSize;    // draw size of circle. read rather complicated from
                                     // another status bar icon, so it fits the icon size
@@ -75,13 +74,13 @@ public class CmCircleBattery extends ImageView {
     private Paint   mPaintGray;
     private Paint   mPaintSystem;
     private Paint   mPaintRed;
+    private Paint   mPaintAnim;
 
     // runnable to invalidate view via mHandler.postDelayed() call
     private final Runnable mInvalidate = new Runnable() {
         public void run() {
-            if(mActivated && mAttached) {
+            if(mActivated && mAttached)
                 invalidate();
-            }
         }
     };
 
@@ -107,13 +106,10 @@ public class CmCircleBattery extends ImageView {
             mPercentage = (batteryStyle == BatteryController.BATTERY_STYLE_CIRCLE_PERCENT);
 
             setVisibility(mActivated ? View.VISIBLE : View.GONE);
-            if (mBatteryReceiver != null) {
+            if (mBatteryReceiver != null)
                 mBatteryReceiver.updateRegistration();
-            }
-
-            if (mActivated && mAttached) {
+            if (mActivated && mAttached)
                 invalidate();
-            }
         }
     }
 
@@ -131,9 +127,17 @@ public class CmCircleBattery extends ImageView {
                 mLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
                 mIsCharging = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0;
 
-                if (mActivated && mAttached) {
+                // David van Tonder:
+                // Would it be possible to have the top 5% show the circle as
+                // full? Say 95% and above? I just took my phone off charge
+                // after a full night of charging and dont have a closed circle.
+                // Given a lot of Samsung devices stop charging at approx 97%,
+                // we will never see a full circle.
+                if (mLevel>=99)
+                    mLevel=100;
+
+                if(mActivated && mAttached)
                     invalidate();
-                }
             }
         }
 
@@ -155,26 +159,25 @@ public class CmCircleBattery extends ImageView {
         }
 
         private void updateRegistration() {
-            if (mActivated && mAttached) {
+            if (mActivated && mAttached)
                 registerSelf();
-            } else {
+            else
                 unregisterSelf();
-            }
         }
     }
 
     /***
-     * Start of CircleBattery implementation
+     * Start of CmCircleBattery implementation
      */
-    public CircleBattery(Context context) {
+    public CmCircleBattery(Context context) {
         this(context, null);
     }
 
-    public CircleBattery(Context context, AttributeSet attrs) {
+    public CmCircleBattery(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
-    public CircleBattery(Context context, AttributeSet attrs, int defStyle) {
+    public CmCircleBattery(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
         mContext = context;
@@ -196,6 +199,7 @@ public class CmCircleBattery extends ImageView {
         mPaintGray = new Paint(mPaintFont);
         mPaintSystem = new Paint(mPaintFont);
         mPaintRed = new Paint(mPaintFont);
+        mPaintAnim = new Paint(mPaintFont);
 
         mPaintFont.setColor(res.getColor(R.color.holo_blue_dark));
         mPaintSystem.setColor(res.getColor(R.color.holo_blue_dark));
@@ -203,6 +207,7 @@ public class CmCircleBattery extends ImageView {
         // do not want to use static 0x404040 color value. would break theming.
         mPaintGray.setColor(res.getColor(R.color.darker_gray));
         mPaintRed.setColor(res.getColor(R.color.holo_red_light));
+        mPaintAnim.setColor(res.getColor(R.color.holo_blue_dark));
 
         // font needs some extra settings
         mPaintFont.setTextAlign(Align.CENTER);
@@ -228,44 +233,37 @@ public class CmCircleBattery extends ImageView {
             mCircleRect = null; // makes sure, size based variables get
                                 // recalculated on next attach
             mCircleSize = 0;    // makes sure, mCircleSize is reread from icons on
-                                // next attach
+                                 // next attach
         }
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (mCircleSize == 0) {
+        if (mCircleSize == 0)
             initSizeMeasureIconHeight();
-        }
         setMeasuredDimension(mCircleSize + getPaddingLeft(), mCircleSize);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (mCircleRect == null) {
+        if (mCircleRect == null)
             initSizeBasedStuff();
-        }
 
         updateChargeAnim();
 
         Paint usePaint = mPaintSystem;
         // turn red at 14% - same level android battery warning appears
-        if (mLevel <= 14) {
+        if (mLevel <= 14)
             usePaint = mPaintRed;
-        }
-
-        // pad circle percentage to 100% once it reaches 97%
-        // for one, the circle looks odd with a too small gap,
-        // for another, some phones never reach 100% due to hardware design
-        int padLevel = mLevel;
-        if (mLevel >= 97) {
-            padLevel=100;
-        }
+        mPaintAnim.setColor(usePaint.getColor());
 
         // draw thin gray ring first
         canvas.drawArc(mCircleRect, 270, 360, false, mPaintGray);
+        // if charging, draw thin animated colored ring next
+        if (mIsCharging)
+            canvas.drawArc(mCircleRect, 270, 3.6f * mAnimLevel, false, mPaintAnim);
         // draw thin colored ring-level last
-        canvas.drawArc(mCircleRect, 270+mAnimOffset, 3.6f * padLevel, false, usePaint);
+        canvas.drawArc(mCircleRect, 270, 3.6f * mLevel, false, usePaint);
         // if chosen by options, draw percentage text in the middle
         // always skip percentage when 100, so layout doesnt break
         if (mLevel < 100 && mPercentage){
@@ -280,25 +278,21 @@ public class CmCircleBattery extends ImageView {
      * uses mInvalidate for delayed invalidate() callbacks
      */
     private void updateChargeAnim() {
-        if (!mIsCharging || mLevel >= 97) {
-            if (mIsAnimating) {
-                mIsAnimating = false;
-                mAnimOffset = 0;
+        if (!mIsCharging) {
+            if (mAnimLevel != -1) {
+                mAnimLevel = -1;
                 mHandler.removeCallbacks(mInvalidate);
             }
             return;
         }
 
-        mIsAnimating = true;
-
-        if (mAnimOffset > 360) {
-            mAnimOffset = 0;
-        } else {
-            mAnimOffset += 3;
-        }
+        if (mAnimLevel > 100 || mAnimLevel < 0)
+            mAnimLevel = mLevel;
+        else
+            mAnimLevel += 6;
 
         mHandler.removeCallbacks(mInvalidate);
-        mHandler.postDelayed(mInvalidate, 50);
+        mHandler.postDelayed(mInvalidate, 750);
     }
 
     /***
@@ -307,9 +301,8 @@ public class CmCircleBattery extends ImageView {
      * YES! i think the method name is appropriate
      */
     private void initSizeBasedStuff() {
-        if (mCircleSize == 0) {
+        if (mCircleSize == 0)
             initSizeMeasureIconHeight();
-        }
 
         mPaintFont.setTextSize(mCircleSize / 2f);
 
@@ -317,6 +310,7 @@ public class CmCircleBattery extends ImageView {
         mPaintRed.setStrokeWidth(strokeWidth);
         mPaintSystem.setStrokeWidth(strokeWidth);
         mPaintGray.setStrokeWidth(strokeWidth / 3.5f);
+        mPaintAnim.setStrokeWidth(strokeWidth / 3.5f);
 
         // calculate rectangle for drawArc calls
         int pLeft = getPaddingLeft();
@@ -327,7 +321,7 @@ public class CmCircleBattery extends ImageView {
         Rect bounds = new Rect();
         mPaintFont.getTextBounds("99", 0, "99".length(), bounds);
         mPercentX = mCircleSize / 2.0f + getPaddingLeft();
-        // the +1 at end of formular balances out rounding issues. works out on all resolutions
+        // the +1 at end of formular balances out rounding issues. gotta test this on different resolutions
         mPercentY = mCircleSize / 2.0f + (bounds.bottom - bounds.top) / 2.0f - strokeWidth / 2.0f + 1;
 
         // force new measurement for wrap-content xml tag
@@ -344,14 +338,15 @@ public class CmCircleBattery extends ImageView {
     private void initSizeMeasureIconHeight() {
         final Bitmap measure = BitmapFactory.decodeResource(getResources(),
                 com.android.systemui.R.drawable.stat_sys_wifi_signal_4_fully);
-        final int x = measure.getWidth() / 2;
+        final int mcol = measure.getWidth() / 2;
 
         mCircleSize = 0;
-        for (int y = 0; y < measure.getHeight(); y++) {
-            int alpha = Color.alpha(measure.getPixel(x, y));
-            if (alpha > 5) {
+        for (int mrow = 0; mrow < measure.getHeight(); mrow++) {
+            int alpha = Color.alpha(measure.getPixel(mcol, mrow));
+            // require alpha to be high enough, the pixel doesnt look
+            // transparent
+            if (alpha > 5)
                 mCircleSize++;
-            }
         }
     }
 }
