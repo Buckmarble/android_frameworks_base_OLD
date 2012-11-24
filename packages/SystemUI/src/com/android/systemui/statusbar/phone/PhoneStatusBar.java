@@ -218,6 +218,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     // position
     int[] mPositionTmp = new int[2];
+    boolean mExpanded;
     boolean mExpandedVisible;
 
     // the date view
@@ -694,6 +695,21 @@ public class PhoneStatusBar extends BaseStatusBar {
         lp.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_UNCHANGED
         | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING;
         return lp;
+    }
+
+    protected void updateRecentsPanel() {
+        super.updateRecentsPanel(R.layout.status_bar_recent_panel);
+        // Make .03 alpha the minimum so you always see the item a bit-- slightly below
+        // .03, the item disappears entirely (as if alpha = 0) and that discontinuity looks
+        // a bit jarring
+        mRecentsPanel.setMinSwipeAlpha(0.03f);
+        if (mNavigationBarView != null) {
+            mNavigationBarView.setListener(mRecentsClickListener, mRecentsPanel, mHomeSearchActionListener);
+        }
+    }
+
+    void onBarViewDetached() {
+     // WindowManagerImpl.getDefault().removeView(mStatusBarWindow);
     }
 
     @Override
