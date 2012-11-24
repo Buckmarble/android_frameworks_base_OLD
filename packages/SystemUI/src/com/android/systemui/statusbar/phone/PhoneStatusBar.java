@@ -80,7 +80,6 @@ import com.android.internal.statusbar.StatusBarNotification;
 import com.android.systemui.statusbar.powerwidget.PowerWidget;
 
 import com.android.systemui.R;
-import com.android.systemui.recent.RecentTasksLoader;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.statusbar.GestureRecorder;
