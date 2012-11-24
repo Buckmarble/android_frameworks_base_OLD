@@ -221,7 +221,6 @@ public class NavigationBarView extends LinearLayout {
     public void notifyScreenOn(boolean screenOn) {
         mScreenOn = screenOn;
         setDisabledFlags(mDisabledFlags, true);
-        }
     public class NavBarReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
