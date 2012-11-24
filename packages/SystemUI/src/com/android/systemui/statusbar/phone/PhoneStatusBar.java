@@ -628,6 +628,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 //        if (wimaxRSSI != null) {
 //            mNetworkController.addWimaxIconView(wimaxRSSI);
 //        }
+        // Recents Panel
+        mRecentTasksLoader = new RecentTasksLoader(context);
+        updateRecentsPanel();
 
         // receive broadcasts
         IntentFilter filter = new IntentFilter();
