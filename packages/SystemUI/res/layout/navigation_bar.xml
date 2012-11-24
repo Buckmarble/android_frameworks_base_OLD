@@ -271,7 +271,6 @@
                 android:layout_width="match_parent"
                 android:src="@drawable/ic_sysbar_lights_out_dot_large"
                 android:scaleType="center"
-                android:layout_weight="0"
                 />
             <View 
                 android:layout_height="match_parent"
