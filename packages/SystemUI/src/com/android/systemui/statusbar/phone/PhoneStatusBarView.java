@@ -243,6 +243,7 @@ public class PhoneStatusBarView extends PanelBar {
             panel.setAlpha(alpha);
         }
         updateShortcutsVisibility();
+        mBar.updateCarrierAndWifiLabelVisibility(false);
     }
     public void updateShortcutsVisibility() {
         // Notification Shortcuts check for fully expanded panel
