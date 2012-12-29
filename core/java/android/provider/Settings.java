@@ -2894,12 +2894,6 @@ public final class Settings {
          */
         public static final String LOCKSCREEN_ALL_WIDGETS = "lockscreen_all_widgets";
 
-        /**
-         * Setting to allow Unlimited Widgets
-         * @hide
-         */
-        public static final String LOCKSCREEN_UNLIMITED_WIDGETS = "lockscreen_unlimited_widgets";
-
          /**
           * Always show the battery status on the lockscreen
           * @hide
