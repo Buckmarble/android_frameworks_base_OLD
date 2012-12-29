@@ -2888,11 +2888,6 @@ public final class Settings {
          */
         public static final String LOCKSCREEN_BACKGROUND = "lockscreen_background";
 
-        /**
-         * Whether to use keyguard or homescreen widgets
-         * @hide
-         */
-        public static final String LOCKSCREEN_ALL_WIDGETS = "lockscreen_all_widgets";
 
          /**
           * Always show the battery status on the lockscreen
