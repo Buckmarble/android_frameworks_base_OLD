@@ -30,7 +30,6 @@ import com.android.systemui.statusbar.GestureRecorder;
 
 public class NotificationPanelView extends PanelView {
 
-<<<<<<< HEAD
     Drawable mHandleBar;
     float mHandleBarHeight;
     View mHandleView;
