@@ -842,7 +842,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             intent.addCategory("android.intent.category.LAUNCHER");
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             mContext.startActivity(intent);
-            mTorchOn = on;
     }
 
     void showGlobalActionsDialog() {
