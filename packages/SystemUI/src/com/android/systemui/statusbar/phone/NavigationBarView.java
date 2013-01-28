@@ -15,24 +15,31 @@
  */
 
 package com.android.systemui.statusbar.phone;
+import java.io.File;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
 import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.animation.AccelerateInterpolator;
@@ -51,7 +58,9 @@ import java.io.PrintWriter;
 
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.systemui.R;
+import com.android.systemui.TransparencyManager;
 import com.android.systemui.aokp.AokpTarget;
+import com.android.systemui.statusbar.BackgroundAlphaColorDrawable;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.DelegateViewHelper;
 import com.android.systemui.statusbar.policy.KeyButtonView;
@@ -100,8 +109,7 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     final static boolean WORKAROUND_INVALID_LAYOUT = true;
     final static int MSG_CHECK_INVALID_LAYOUT = 8686;
 
-    private float mNavigationBarAlpha;
-    public static final float KEYGUARD_ALPHA = 0.44f;
+    private TransparencyManager mTransparencyManager;
 
     private class H extends Handler {
         public void handleMessage(Message m) {
@@ -216,6 +224,10 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         mBackAltLandIcon = res.getDrawable(R.drawable.ic_sysbar_back_ime_land);
     }
 
+    public void setTransparencyManager(TransparencyManager tm) {
+        mTransparencyManager = tm;
+    }
+
     public class NavBarReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -244,13 +256,19 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
                 }
             }
         }
-        Drawable bg = mContext.getResources().getDrawable(R.drawable.nav_bar_bg);
-        if(bg instanceof ColorDrawable) {
-            setBackground(new BackgroundAlphaColorDrawable(((ColorDrawable) bg).getColor()));
-        }
-        setBackgroundAlpha(mNavigationBarAlpha);
     }
 
+    private void makeBar() {
+        Drawable bg = mContext.getResources().getDrawable(R.drawable.nav_bar_bg);
+        if(bg instanceof ColorDrawable) {
+            BackgroundAlphaColorDrawable bacd = new BackgroundAlphaColorDrawable(
+                    mNavigationBarColor > 0 ? mNavigationBarColor : ((ColorDrawable) bg).getColor());
+            setBackground(bacd);
+        }
+        if(mTransparencyManager != null) {
+            mTransparencyManager.update();
+        }
+    }
     public void notifyScreenOn(boolean screenOn) {
         mScreenOn = screenOn;
         setDisabledFlags(mDisabledFlags, true);
@@ -310,7 +328,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
                             : (mVertical ? mBackLandIcon : mBackIcon));
         }
         setDisabledFlags(mDisabledFlags, true);
-        updateKeyguardAlpha();
     }
 
     @Override
@@ -322,15 +339,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         return ((mDisabledFlags & View.STATUS_BAR_DISABLE_HOME) != 0) && !((mDisabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0);
     }
 
-    private void updateKeyguardAlpha() {
-        if(!isKeyguardEnabled() && (mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0) {
-            // keyboard up, always darken it
-            setBackgroundAlpha(1);
-        } else {
-            // if the user set alpha is below what the keygaurd alpha, match the keyguard alpha and be pretty
-            setBackgroundAlpha(isKeyguardEnabled() && mNavigationBarAlpha < KEYGUARD_ALPHA ? KEYGUARD_ALPHA : mNavigationBarAlpha);
-        }
-    }
 
     public void setDisabledFlags(int disabledFlags, boolean force) {
         if (!force && mDisabledFlags == disabledFlags) return;
@@ -366,7 +374,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         setButtonWithTagVisibility(NavigationButtons.MENU_BIG, disableRecent ? View.INVISIBLE : View.VISIBLE);
         setButtonWithTagVisibility(NavigationButtons.SEARCH, disableRecent ? View.INVISIBLE : View.VISIBLE);
         getSearchLight().setVisibility(keygaurdProbablyEnabled ? View.VISIBLE : View.GONE);
-        updateKeyguardAlpha();
     }
 
     public void setSlippery(boolean newSlippery) {
@@ -551,25 +558,12 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
             super(handler);
         }
 
-        void observe() {
-            ContentResolver resolver = mContext.getContentResolver();
 
-            resolver.registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NAVIGATION_BAR_ALPHA), false, this);
-            }
-            updateSettings();
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            updateSettings();
-        }
-    }
 
     /*
      * ]0 < alpha < 1[
      */
-    private void setBackgroundAlpha(float alpha) {
+    public void setBackgroundAlpha(float alpha) {
         Drawable bg = getBackground();
         if(bg == null) return;
 
@@ -577,13 +571,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         bg.setAlpha(a);
     }
 
-    protected void updateSettings() {
-        ContentResolver resolver = mContext.getContentResolver();
-
-        mNavigationBarAlpha = Settings.System.getFloat(resolver,
-                Settings.System.NAVIGATION_BAR_ALPHA, new Float(mContext.getResources().getInteger(R.integer.navigation_bar_transparency) / 255));
-
-    }
 
     private String getResourceName(int resId) {
         if (resId != 0) {
