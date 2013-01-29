@@ -89,6 +89,10 @@ public class Clock extends TextView {
 
         @Override public void onChange(boolean selfChange) {
             updateSettings();
+            // showAlways is only set on expanded statusbar, we must avoid
+            // to hide clock or add AM/PM there
+            if(!mShowAlways) updateParameters();
+            updateClock();
         }
     }
 
@@ -109,10 +113,7 @@ public class Clock extends TextView {
         updateSettings();
     }
 
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-
+    public void startBroadcastReceiver() {
         if (!mAttached) {
             mAttached = true;
             IntentFilter filter = new IntentFilter();
@@ -133,6 +134,12 @@ public class Clock extends TextView {
 
         // Make sure we update to the current time
         updateClock();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        startBroadcastReceiver();
     }
 
     @Override
@@ -162,10 +169,11 @@ public class Clock extends TextView {
 
     protected final void updateClock() {
         mCalendar.setTimeInMillis(System.currentTimeMillis());
-        setText(getSmallTime());
+        CharSequence seq = getSmallTime();
+        setText(seq);
     }
 
-    protected final CharSequence getSmallTime() {
+    public final CharSequence getSmallTime() {
         Context context = getContext();
         boolean b24 = DateFormat.is24HourFormat(context);
         int res;
