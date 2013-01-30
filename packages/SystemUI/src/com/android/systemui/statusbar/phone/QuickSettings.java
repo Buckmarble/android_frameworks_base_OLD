@@ -829,7 +829,7 @@ class QuickSettings {
                 quick.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mAokpTarget.getInstance(mContext).launchAction(mAokpTarget.ACTION_SILENT_VIB);
+                        mAokpTarget.launchAction(mAokpTarget.ACTION_SILENT_VIB);
                         mModel.refreshSoundStateTile();
                     }
                 });
