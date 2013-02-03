@@ -276,8 +276,7 @@ public class PieMenu extends FrameLayout {
                 Settings.System.PIE_MODE, 2);
         mPieSize = Settings.System.getFloat(mContext.getContentResolver(),
                 Settings.System.PIE_SIZE, 1f);
-        mPieGap = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.PIE_GAP, 1);
+        mPieGap = 1; //Settings.System.getInt(mContext.getContentResolver(), Settings.System.PIE_GAP, 3);
 
         // Snap
         mSnapRadius = (int)(mResources.getDimensionPixelSize(R.dimen.pie_snap_radius) * mPieSize);
