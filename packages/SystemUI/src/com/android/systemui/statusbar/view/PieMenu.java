@@ -138,7 +138,6 @@ public class PieMenu extends FrameLayout {
     private int mPanelOrientation;
     private int mInnerPieRadius;
     private int mOuterPieRadius;
-    private int mPieGap;
     private int mInnerChevronRadius;
     private int mOuterChevronRadius;
     private int mInnerBatteryRadius;
@@ -235,17 +234,7 @@ public class PieMenu extends FrameLayout {
         }
 
         public void start() {
-            if (!manual) {
-                animator.setDuration(duration);
-                animator.start();
-            }
-        }
-
-        public void reverse(int milliSeconds) {
-            if (!manual) {
-                animator.setDuration(milliSeconds);
-                animator.reverse();
-            }
+            if (!manual) animator.start();
         }
 
         public void cancel() {
@@ -254,7 +243,6 @@ public class PieMenu extends FrameLayout {
         }
 
         public int index;
-        public int duration;
         public boolean manual;
         public boolean animateIn;
         public float fraction;
@@ -276,7 +264,6 @@ public class PieMenu extends FrameLayout {
                 Settings.System.PIE_MODE, 2);
         mPieSize = Settings.System.getFloat(mContext.getContentResolver(),
                 Settings.System.PIE_SIZE, 1f);
-        mPieGap = 1; //Settings.System.getInt(mContext.getContentResolver(), Settings.System.PIE_GAP, 3);
 
         // Snap
         mSnapRadius = (int)(mResources.getDimensionPixelSize(R.dimen.pie_snap_radius) * mPieSize);
@@ -328,8 +315,8 @@ public class PieMenu extends FrameLayout {
             mBatteryJuice.setColor(COLOR_BATTERY_JUICE);
         }
 
-        mStartBattery = mPanel.getDegree() + mEmptyAngle + mPieGap;
-        mEndBattery = mPanel.getDegree() + (mPieGap <= 2 ? 88 : 90 - mPieGap);
+        mStartBattery = mPanel.getDegree() + mEmptyAngle + 1;
+        mEndBattery = mPanel.getDegree() + 88;
         mBatteryPathBackground = makeSlice(mStartBattery, mEndBattery, mInnerBatteryRadius, mOuterBatteryRadius, mCenter);
         mBatteryPathJuice = makeSlice(mStartBattery, mStartBattery + mBatteryLevel * (mEndBattery-mStartBattery) /
                 100, mInnerBatteryRadius, mOuterBatteryRadius, mCenter);
@@ -398,33 +385,33 @@ public class PieMenu extends FrameLayout {
         }
 
         // Linear animators
-        mAnimators[ANIMATOR_DEC_SPEED10].duration = (int)(mOverallSpeed * 1);
+        mAnimators[ANIMATOR_DEC_SPEED10].animator.setDuration((int)(mOverallSpeed * 1));
         mAnimators[ANIMATOR_DEC_SPEED10].animator.setInterpolator(new DecelerateInterpolator());
 
-        mAnimators[ANIMATOR_DEC_SPEED15].duration = (int)(mOverallSpeed * 1.5);
+        mAnimators[ANIMATOR_DEC_SPEED15].animator.setDuration((int)(mOverallSpeed * 1.5));
         mAnimators[ANIMATOR_DEC_SPEED15].animator.setInterpolator(new DecelerateInterpolator());
 
-        mAnimators[ANIMATOR_DEC_SPEED30].duration = (int)(mOverallSpeed * 3);
+        mAnimators[ANIMATOR_DEC_SPEED30].animator.setDuration((int)(mOverallSpeed * 3));
         mAnimators[ANIMATOR_DEC_SPEED30].animator.setInterpolator(new DecelerateInterpolator());
 
-        mAnimators[ANIMATOR_ACC_SPEED10].duration = (int)(mOverallSpeed * 1);
+        mAnimators[ANIMATOR_ACC_SPEED10].animator.setDuration((int)(mOverallSpeed * 1));
         mAnimators[ANIMATOR_ACC_SPEED10].animator.setInterpolator(new AccelerateInterpolator());
 
-        mAnimators[ANIMATOR_ACC_SPEED15].duration = (int)(mOverallSpeed * 1.5);
+        mAnimators[ANIMATOR_ACC_SPEED15].animator.setDuration((int)(mOverallSpeed * 1.5));
         mAnimators[ANIMATOR_ACC_SPEED15].animator.setInterpolator(new AccelerateInterpolator());
 
-        mAnimators[ANIMATOR_ACC_SPEED30].duration = (int)(mOverallSpeed * 3);
+        mAnimators[ANIMATOR_ACC_SPEED30].animator.setDuration((int)(mOverallSpeed * 3));
         mAnimators[ANIMATOR_ACC_SPEED30].animator.setInterpolator(new AccelerateInterpolator());
 
         // Cascade accelerators
         for(int i = ANIMATOR_ACC_INC_1; i < ANIMATOR_ACC_INC_15 + 1; i++) {
-            mAnimators[i].duration = (int)(mOverallSpeed - (mOverallSpeed * 0.8) / (i + 2));
+            mAnimators[i].animator.setDuration((int)(mOverallSpeed - (mOverallSpeed * 0.8) / (i + 2)));
             mAnimators[i].animator.setInterpolator(new AccelerateInterpolator());
             mAnimators[i].animator.setStartDelay(i * mOverallSpeed / 10);
         }
 
         // Special purpose
-        mAnimators[ANIMATOR_BATTERY_METER].duration = (int)(mOverallSpeed * 1.5);
+        mAnimators[ANIMATOR_BATTERY_METER].animator.setDuration((int)(mOverallSpeed * 1.5));
         mAnimators[ANIMATOR_BATTERY_METER].animator.setInterpolator(new DecelerateInterpolator());
 
         mAnimators[ANIMATOR_SNAP_WOBBLE].manual = true;
@@ -586,6 +573,7 @@ public class PieMenu extends FrameLayout {
         float emptyangle = mEmptyAngle * (float)Math.PI / 180;
         int inner = mInnerPieRadius;
         int outer = mOuterPieRadius;
+        int gap = 1;
 
         int lesserSweepCount = 0;
         for (PieItem item : mItems) {
@@ -602,7 +590,7 @@ public class PieMenu extends FrameLayout {
         for (PieItem item : mItems) {
             sweep = ((float) (Math.PI - 2 * emptyangle) / mItems.size()) * (item.isLesser() ? 0.65f : 1 + adjustedSweep);
             angle = (emptyangle + sweep / 2 - (float)Math.PI/2);
-            item.setPath(makeSlice(getDegrees(0) - mPieGap, getDegrees(sweep) + mPieGap, outer, inner, mCenter));
+            item.setPath(makeSlice(getDegrees(0) - gap, getDegrees(sweep) + gap, outer, inner, mCenter));
             View view = item.getView();
 
             if (view != null) {
@@ -652,7 +640,7 @@ public class PieMenu extends FrameLayout {
         }
 
         @Override
-        public void onAnimationUpdate(ValueAnimator animation) {            
+        public void onAnimationUpdate(ValueAnimator animation) {
             mAnimators[mIndex].fraction = animation.getAnimatedFraction();
 
             // Special purpose animators go here
@@ -675,7 +663,6 @@ public class PieMenu extends FrameLayout {
         cancelAnimation();
         invalidate();
         for (int i = 0; i < mAnimators.length; i++) {
-            mAnimators[i].animateIn = true;
             mAnimators[i].start();
         }
     }
