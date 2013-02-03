@@ -382,7 +382,6 @@ public class PhoneStatusBar extends BaseStatusBar {
             }});
 
         mStatusBarView = (PhoneStatusBarView) mStatusBarWindow.findViewById(R.id.status_bar);
-        mStatusBarView.setStatusBar(this);
         mStatusBarView.setBar(this);
         
 
@@ -433,8 +432,6 @@ public class PhoneStatusBar extends BaseStatusBar {
         } catch (RemoteException ex) {
             // no window manager? good luck with that
         }
-        // set recents activity navigation bar view
-        RecentsActivity.addNavigationCallback(mNavigationBarView);
 
         // figure out which pixel-format to use for the status bar.
         mPixelFormat = PixelFormat.OPAQUE;
@@ -650,11 +647,6 @@ public class PhoneStatusBar extends BaseStatusBar {
     @Override
     protected View getStatusBarView() {
         return mStatusBarView;
-    }
-
-    @Override
-    public QuickSettingsContainerView getQuickSettingsPanel() {
-        return mSettingsContainer;
     }
 
     @Override
@@ -1403,7 +1395,6 @@ public class PhoneStatusBar extends BaseStatusBar {
         animateCollapsePanels(CommandQueue.FLAG_EXCLUDE_NONE);
     }
 
-    @Override
     public void animateCollapsePanels(int flags) {
         if (SPEW) {
             Slog.d(TAG, "animateCollapse():"
@@ -1427,7 +1418,6 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         mStatusBarWindow.cancelExpandHelper();
         mStatusBarView.collapseAllPanels(true);
-        super.animateCollapsePanels(flags);
     }
 
     public ViewPropertyAnimator setVisibilityWhenDone(

@@ -944,56 +944,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         } catch (RemoteException ex) { }
         mSettingsObserver = new SettingsObserver(mHandler);
         mSettingsObserver.observe();
-
-        // SystemUI reboot
-        mContext.getContentResolver().registerContentObserver(
-                Settings.System.getUriFor(Settings.System.USER_INTERFACE_STATE), false, new ContentObserver(new Handler()) {
-            @Override
-            public void onChange(boolean selfChange) {
-                // Return for reset triggers
-                if (Settings.System.getInt(mContext.getContentResolver(), 
-                    Settings.System.USER_INTERFACE_STATE, 0) == 0) {
-                    return;
-                }
-
-                // Update layout
-                update(true);
-                
-                // Reset trigger
-                Settings.System.putInt(mContext.getContentResolver(), Settings.System.USER_INTERFACE_STATE, 0);
-            }});
-
-        // Expanded desktop
-        mContext.getContentResolver().registerContentObserver(
-                Settings.System.getUriFor(Settings.System.EXPANDED_DESKTOP_STATE),
-                    false, new ContentObserver(new Handler()) {
-            @Override
-            public void onChange(boolean selfChange) {
-                updateHybridLayout();
-                update(false);
-
-                // Restart default launcher activity
-                final PackageManager mPm = mContext.getPackageManager();
-                final ActivityManager am = (ActivityManager)mContext
-                        .getSystemService(Context.ACTIVITY_SERVICE);
-                final Intent intent = new Intent(Intent.ACTION_MAIN); 
-                intent.addCategory(Intent.CATEGORY_HOME); 
-                final ResolveInfo res = mPm.resolveActivity(intent, 0);
-
-                // Launcher is running task #1
-                List<ActivityManager.RunningTaskInfo> runningTasks = am.getRunningTasks(1);
-                if (runningTasks != null) {
-                    for (ActivityManager.RunningTaskInfo task : runningTasks) {
-                        String packageName = task.baseActivity.getPackageName();
-                        if (packageName.equals(res.activityInfo.packageName)) {
-                            closeApplication(packageName);
-                            break;
-                        }
-                    }
-                }
-            }
-        });
-
         mShortcutManager = new ShortcutManager(context, mHandler);
         mShortcutManager.observe();
         mHomeIntent =  new Intent(Intent.ACTION_MAIN, null);
@@ -1215,16 +1165,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             mHdmiRotation = mLandscapeRotation;
         }
         mHdmiRotationLock = SystemProperties.getBoolean("persist.demo.hdmirotationlock", true);
-    }
-
-    private void closeApplication(String packageName) {
-        try {
-            ActivityManagerNative.getDefault().killApplicationProcess(
-                    packageName, AppGlobals.getPackageManager().getPackageUid(
-                    packageName, UserHandle.myUserId()));
-        } catch (RemoteException e) {
-            // Good luck next time!
-        }
     }
 
     public void updateSettings() {
@@ -4753,6 +4693,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         return diff;
     }
 
+    // Use this instead of checking config_showNavigationBar so that it can be consistently
+    // overridden by qemu.hw.mainkeys in the emulator.
     public boolean hasNavigationBar() {
         return mHasNavigationBar;
     }
