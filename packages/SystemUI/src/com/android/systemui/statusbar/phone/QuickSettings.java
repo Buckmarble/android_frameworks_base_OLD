@@ -501,7 +501,7 @@ public class QuickSettings {
                                 (UserManager) mContext.getSystemService(Context.USER_SERVICE);
                         if (um.getUsers(true).size() > 1) {
                             try {
-                                WindowManagerGlobal.getWindowManagerService().lockNow(
+                        WindowManagerGlobal.getWindowManagerService().lockNow(null);
                             } catch (RemoteException e) {
                                 Log.e(TAG, "Couldn't show user switcher", e);
                             }
