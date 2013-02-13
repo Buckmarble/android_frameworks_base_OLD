@@ -1244,9 +1244,6 @@ public class NotificationManagerService extends INotificationManager.Stub
                     hasValidSound = (soundUri != null);
                 }
 
-                Uri soundUri = null;
-                boolean hasValidSound = false;
-
                 if (useDefaultSound) {
                     soundUri = Settings.System.DEFAULT_NOTIFICATION_URI;
 
