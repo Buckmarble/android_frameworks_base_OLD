@@ -102,14 +102,13 @@ public class KeyguardHostView extends KeyguardViewBase {
 
     private boolean mSafeModeEnabled;
 
-
-     // We can use the profile manager to override security
-     private ProfileManager mProfileManager;
-
-     /*package*/ interface TransportCallback {
     private boolean mUserSetupCompleted;
     // User for whom this host view was created
     private int mUserId;
+
+
+     // We can use the profile manager to override security
+     private ProfileManager mProfileManager;
 
     /*package*/ interface TransportCallback {
         void onListenerDetached();
