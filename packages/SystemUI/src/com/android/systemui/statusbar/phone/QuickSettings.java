@@ -263,9 +263,6 @@ public class QuickSettings {
         connManager = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
         mBluetoothState = new QuickSettingsModel.BluetoothState();
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-
         mHandler = new Handler();
 
         mAokpTarget = new AokpTarget(mContext);
