@@ -221,11 +221,6 @@ public class NotificationPanelView extends PanelView {
         final boolean result = mHandleView.dispatchTouchEvent(event);
         if (shouldRecycleEvent) {
             event.recycle();
-                        mStatusBar.flipToSettings();
-                    }
-                    mOkToFlip = false;
-                }
-            }
         }
         return result;
     }
