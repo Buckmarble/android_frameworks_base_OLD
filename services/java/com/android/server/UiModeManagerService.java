@@ -197,7 +197,13 @@ final class UiModeManagerService extends IUiModeManager.Stub {
 
         ThemeUtils.registerThemeChangeReceiver(mContext, mThemeChangeReceiver);
 
-        mPowerManager = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+        mTwilightService.registerListener(mTwilightListener, mHandler);
+
+        // Register settings observer and set initial preferences
+        SettingsObserver settingsObserver = new SettingsObserver(new Handler());
+        settingsObserver.observe();
+
+        mPowerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
         mWakeLock = mPowerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, TAG);
 
         mTwilightService.registerListener(mTwilightListener, mHandler);
