@@ -103,12 +103,12 @@ public class PieMenu extends FrameLayout {
     private static final int COLOR_ALPHA_MASK = 0xaa000000;
     private static final int COLOR_OPAQUE_MASK = 0xff000000;
     private static final int COLOR_SNAP_BACKGROUND = 0xffffffff;
-    private static final int COLOR_PIE_BACKGROUND = 0xaa000000;
+    private static final int COLOR_PIE_BACKGROUND = 0xaaff005e;
     private static final int COLOR_PIE_BUTTON = 0xb2ffffff;
-    private static final int COLOR_PIE_SELECT = 0xaaffffff;
+    private static final int COLOR_PIE_SELECT = 0xaadbff00;
     private static final int COLOR_PIE_OUTLINES = 0x55ffffff;
     private static final int COLOR_CHEVRON_LEFT = 0x0999cc;
-    private static final int COLOR_CHEVRON_RIGHT = 0x53d5e5;
+    private static final int COLOR_CHEVRON_RIGHT = 0x33b5e5;
     private static final int COLOR_BATTERY_JUICE = 0x33b5e5;
     private static final int COLOR_BATTERY_JUICE_LOW = 0xffbb33;
     private static final int COLOR_BATTERY_JUICE_CRITICAL = 0xff4444;
@@ -375,11 +375,11 @@ public class PieMenu extends FrameLayout {
 
         if (mEnableColor) {
             mPieBackground.setColor(Settings.System.getInt(mContext.getContentResolver(),
-                        Settings.System.PIE_BACKGROUND, COLOR_PIE_BACKGROUND));
+                        Settings.System.PIE_BACKGROUND, COLOR_PIE_BACKGROUND) | COLOR_ALPHA_MASK);
             mPieSelected.setColor(Settings.System.getInt(mContext.getContentResolver(),
-                        Settings.System.PIE_SELECT, COLOR_PIE_SELECT));
+                        Settings.System.PIE_SELECT, COLOR_PIE_SELECT) | COLOR_ALPHA_MASK);
             mPieOutlines.setColor(Settings.System.getInt(mContext.getContentResolver(),
-                        Settings.System.PIE_OUTLINES, COLOR_PIE_OUTLINES));
+                        Settings.System.PIE_OUTLINES, COLOR_PIE_OUTLINES) | COLOR_ALPHA_MASK);
             mClockPaint.setColor(Settings.System.getInt(mContext.getContentResolver(),
                         Settings.System.PIE_STATUS_CLOCK, COLOR_STATUS));
             mAmPmPaint.setColor(Settings.System.getInt(mContext.getContentResolver(),
@@ -387,9 +387,9 @@ public class PieMenu extends FrameLayout {
             mStatusPaint.setColor(Settings.System.getInt(mContext.getContentResolver(),
                         Settings.System.PIE_STATUS, COLOR_STATUS));
             mChevronBackgroundLeft.setColor(Settings.System.getInt(mContext.getContentResolver(),
-                        Settings.System.PIE_CHEVRON_LEFT, COLOR_CHEVRON_LEFT));
+                        Settings.System.PIE_CHEVRON_LEFT, COLOR_CHEVRON_LEFT) | COLOR_OPAQUE_MASK);
             mChevronBackgroundRight.setColor(Settings.System.getInt(mContext.getContentResolver(),
-                        Settings.System.PIE_CHEVRON_RIGHT, COLOR_CHEVRON_RIGHT));
+                        Settings.System.PIE_CHEVRON_RIGHT, COLOR_CHEVRON_RIGHT) | COLOR_OPAQUE_MASK);
             mBatteryJuice.setColorFilter(new PorterDuffColorFilter(extractRGB(Settings.System.getInt(mContext.getContentResolver(),
                         Settings.System.PIE_JUICE, COLOR_BATTERY_JUICE)) | COLOR_OPAQUE_MASK, Mode.SRC_ATOP));
             for (PieItem item : mItems) {
@@ -406,7 +406,7 @@ public class PieMenu extends FrameLayout {
             mChevronBackgroundRight.setColor(getResources().getColor(R.color.chevron_right));
             mBatteryJuice.setColorFilter(null);
             for (PieItem item: mItems) {
-                item.setColor(COLOR_PIE_BUTTON);
+                item.setColor(getResources().getColor(R.color.status));
             }
         }
 
@@ -867,8 +867,8 @@ public class PieMenu extends FrameLayout {
                         canvas.drawTextOnPath(mPolicy.getNetworkProvider(), mStatusPath, 0, mStatusOffset * 4, mStatusPaint);
                     }
                     canvas.drawTextOnPath(mPolicy.getSimpleDate(), mStatusPath, 0, mStatusOffset * 3, mStatusPaint);
-                    canvas.drawTextOnPath(mPanel.getBar().getNotificationData().size() + " ONGOING EVENTS", mStatusPath, 0, mStatusOffset * 2, mStatusPaint);
-                    canvas.drawTextOnPath("CONNECTION: " + mPolicy.getWifiSsid(), mStatusPath, 0, mStatusOffset * 1, mStatusPaint);
+                    canvas.drawTextOnPath(mPanel.getBar().getNotificationData().size() + " " + mContext.getString(R.string.status_bar_latest_events_title).toUpperCase(), mStatusPath, 0, mStatusOffset * 2, mStatusPaint);
+                    canvas.drawTextOnPath(mContext.getString(R.string.quick_settings_wifi_label).toUpperCase() + ": " + mPolicy.getWifiSsid(), mStatusPath, 0, mStatusOffset * 1, mStatusPaint);
                     canvas.drawTextOnPath(mPolicy.getBatteryLevelReadable(), mStatusPath, 0, mStatusOffset * 0, mStatusPaint);
                     canvas.restoreToCount(state);
 
