@@ -1246,8 +1246,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 mHasSoftInput = hasSoftInput;
                 updateRotation = true;
             }
-
-            }
         }
         if (updateRotation) {
             updateRotation(true);
