@@ -4629,6 +4629,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
     }
 
+    void updateDisplayMetrics() {
+        try {
+            mWindowManager.updateDisplayMetrics();
+        } catch (RemoteException e) {
+            // Ignore
+        }
+    }
+
     void startDockOrHome() {
         // We don't have dock home anymore. Home is home. If you lived here, you'd be home by now.
         mContext.startActivityAsUser(mHomeIntent, UserHandle.CURRENT);
