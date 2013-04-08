@@ -2861,11 +2861,6 @@ public class PhoneStatusBar extends BaseStatusBar {
                     Settings.System.NOTIFICATION_SHORTCUTS_HIDE_CARRIER), false, this, UserHandle.USER_ALL);
         }
 
-         @Override
-        public void onChange(boolean selfChange) {
-            updateSettings();
-        }
-
         public void update() {
             ContentResolver resolver = mContext.getContentResolver();
             mNotificationShortcutsToggle = Settings.System.getIntForUser(resolver,
