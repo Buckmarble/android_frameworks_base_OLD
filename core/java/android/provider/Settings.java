@@ -3553,44 +3553,6 @@ public final class Settings {
          */
         public static final String NOTIFICATION_SHOW_WIFI_SSID = "notification_show_wifi_ssid";
 
-        /**
-         * Whether to enable notification shortcuts (toggle)
-         *
-         * @hide
-         */
-
-        public static final String NOTIFICATION_SHORTCUTS_TOGGLE = "pref_notification_shortcuts_toggle";
-
-        /**
-         * Stores the number of notification shortcuts to display settings for
-         * @hide
-         */
-        public static final String NOTIFICATION_SHORTCUTS_QUANTITY = "pref_notification_shortcuts_quantity";
-
-        /**
-         * Stores values for notification shortcut targets
-         * @hide
-         */
-        public static final String NOTIFICATION_SHORTCUTS_TARGETS = "notification_shortcuts_targets";
-
-        /**
-         * Stores the value for notification shortcuts icon color
-         * @hide
-         */
-        public static final String NOTIFICATION_SHORTCUTS_COLOR = "notification_shortcuts_color";
-
-        /**
-         * Whether to colorize the default application icons
-         * @hide
-         */
-        public static final String NOTIFICATION_SHORTCUTS_COLORIZE_TOGGLE = "notification_shortcuts_colorize_toggle";
-
-        /**
-         * Whether to colorize the default application icons
-         * @hide
-         */
-        public static final String NOTIFICATION_SHORTCUTS_HIDE_CARRIER = "notification_shortcuts_hide_carrier";
-
     }
 
     /**
