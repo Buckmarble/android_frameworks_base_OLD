@@ -610,39 +610,37 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
 
         mWifiLabel = (TextView)mStatusBarWindow.findViewById(R.id.wifi_text);
-        if (mWifiLabel != null) {
-            mNetworkController.addWifiLabelView(mWifiLabel);
+        mNetworkController.addWifiLabelView(mWifiLabel);
 
-            mWifiLabel.addTextChangedListener(new TextWatcher() {
+        mWifiLabel.addTextChangedListener(new TextWatcher() {
 
-                public void afterTextChanged(Editable s) {
+            public void afterTextChanged(Editable s) {
+            }
+            public void beforeTextChanged(CharSequence s, int start, int count,
+                    int after) {
+            }
+            public void onTextChanged(CharSequence s, int start, int before,
+                    int count) {
+                 if (Settings.System.getInt(mContext.getContentResolver(),
+                        Settings.System.NOTIFICATION_SHOW_WIFI_SSID, 0) == 1 &&
+                        count > 0) {
+                    mWifiView.setVisibility(View.VISIBLE);
                 }
-                public void beforeTextChanged(CharSequence s, int start, int count,
-                        int after) {
+                else
+                {
+                    mWifiView.setVisibility(View.GONE);
                 }
-                public void onTextChanged(CharSequence s, int start, int before,
-                        int count) {
-                     if (Settings.System.getInt(mContext.getContentResolver(),
-                            Settings.System.NOTIFICATION_SHOW_WIFI_SSID, 0) == 1 &&
-                            count > 0) {
-                        mWifiView.setVisibility(View.VISIBLE);
-                    }
-                    else
-                    {
-                        mWifiView.setVisibility(View.GONE);
-                    }
-                }
+            }
 
-            });
+        });
 
-            // set up the dynamic hide/show of the labels
-            mPile.setOnSizeChangedListener(new OnSizeChangedListener() {
-                @Override
-                public void onSizeChanged(View view, int w, int h, int oldw, int oldh) {
-                    updateCarrierAndWifiLabelVisibility(false);
-                }
-            });
-        }
+        // set up the dynamic hide/show of the labels
+        mPile.setOnSizeChangedListener(new OnSizeChangedListener() {
+            @Override
+            public void onSizeChanged(View view, int w, int h, int oldw, int oldh) {
+                updateCarrierAndWifiLabelVisibility(false);
+            }
+        });
 
         // Quick Settings (where available, some restrictions apply)
         if (mHasSettingsPanel) {
@@ -1194,43 +1192,41 @@ public class PhoneStatusBar extends BaseStatusBar {
     }
 
     protected void updateCarrierAndWifiLabelVisibility(boolean force) {
-        if (mCarrierAndWifiView != null) {
+        if (DEBUG) {
+            Slog.d(TAG, String.format("pileh=%d scrollh=%d carrierh=%d",
+                    mPile.getHeight(), mScrollView.getHeight(), mCarrierAndWifiViewHeight));
+        }
+
+        final boolean emergencyCallsShownElsewhere = mEmergencyCallLabel != null;
+        final boolean makeVisible =
+            !(emergencyCallsShownElsewhere && mNetworkController.isEmergencyOnly())
+            && mPile.getHeight() < (mNotificationPanel.getHeight() - mCarrierAndWifiViewHeight - mNotificationHeaderHeight - calculateCarrierLabelBottomMargin())
+            && mScrollView.getVisibility() == View.VISIBLE;
+        
+        if (force || mCarrierAndWifiViewVisible != makeVisible) {
+            mCarrierAndWifiViewVisible = makeVisible;
             if (DEBUG) {
-                Slog.d(TAG, String.format("pileh=%d scrollh=%d carrierh=%d",
-                        mPile.getHeight(), mScrollView.getHeight(), mCarrierAndWifiViewHeight));
+                Slog.d(TAG, "making carrier label " + (makeVisible?"visible":"invisible"));
             }
-
-            final boolean emergencyCallsShownElsewhere = mEmergencyCallLabel != null;
-            final boolean makeVisible =
-                !(emergencyCallsShownElsewhere && mNetworkController.isEmergencyOnly())
-                && mPile.getHeight() < (mNotificationPanel.getHeight() - mCarrierAndWifiViewHeight - mNotificationHeaderHeight)
-                && mScrollView.getVisibility() == View.VISIBLE;
-
-            if (force || mCarrierAndWifiViewVisible != makeVisible) {
-                mCarrierAndWifiViewVisible = makeVisible;
-                if (DEBUG) {
-                    Slog.d(TAG, "making carrier label " + (makeVisible?"visible":"invisible"));
-                }
-                mCarrierAndWifiView.animate().cancel();
-                if (makeVisible) {
-                    mCarrierAndWifiView.setVisibility(View.VISIBLE);
-                }
-                mCarrierAndWifiView.animate()
-                    .alpha(makeVisible ? 1f : 0f)
-                    //.setStartDelay(makeVisible ? 500 : 0)
-                    //.setDuration(makeVisible ? 750 : 100)
-                    .setDuration(150)
-                    .setListener(makeVisible ? null : new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            if (!mCarrierAndWifiViewVisible) { // race
-                                mCarrierAndWifiView.setVisibility(View.INVISIBLE);
-                                mCarrierAndWifiView.animate().alpha(0f);
-                            }
+            mCarrierAndWifiView.animate().cancel();
+            if (makeVisible) {
+                mCarrierAndWifiView.setVisibility(View.VISIBLE);
+            }
+            mCarrierAndWifiView.animate()
+                .alpha(makeVisible ? 1f : 0f)
+                //.setStartDelay(makeVisible ? 500 : 0)
+                //.setDuration(makeVisible ? 750 : 100)
+                .setDuration(150)
+                .setListener(makeVisible ? null : new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (!mCarrierAndWifiViewVisible) { // race
+                            mCarrierAndWifiView.setVisibility(View.INVISIBLE);
+                            mCarrierAndWifiView.animate().alpha(0f);
                         }
-                    })
-                    .start();
-            }
+                    }
+                })
+                .start();
         }
     }
 
