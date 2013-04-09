@@ -1264,7 +1264,6 @@ public class PhoneStatusBar extends BaseStatusBar {
                         }
                     })
                     .start();
-            }
         }
     }
 
