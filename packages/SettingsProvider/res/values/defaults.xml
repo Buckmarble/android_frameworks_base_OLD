@@ -187,6 +187,4 @@
     2. Left -->
     <integer name="def_qs_quick_pulldown">0</integer>
 
-    <!-- Default for Settings.System.LOCKSCREEN_TARGETS. -->
-    <string name="def_lockscreen_targets" translatable="false"></string>
 </resources>
