@@ -28,11 +28,6 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.PixelFormat;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
@@ -46,7 +41,6 @@ import android.view.View;
 import android.view.Surface;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.animation.AccelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -55,10 +49,8 @@ import java.io.PrintWriter;
 
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.systemui.R;
-import com.android.systemui.aokp.AokpTarget;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.DelegateViewHelper;
-import com.android.systemui.statusbar.policy.KeyButtonView;
 import com.android.systemui.statusbar.NavigationButtons;
 import com.android.systemui.statusbar.NavigationButtons.ButtonInfo;
 import com.android.systemui.statusbar.policy.DeadZone;
@@ -103,9 +95,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     // workaround for LayoutTransitions leaving the nav buttons in a weird state (bug 5549288)
     final static boolean WORKAROUND_INVALID_LAYOUT = true;
     final static int MSG_CHECK_INVALID_LAYOUT = 8686;
-
-    private float mNavigationBarAlpha;
-    public static final float KEYGUARD_ALPHA = 0.44f;
 
     private class H extends Handler {
         public void handleMessage(Message m) {
@@ -248,11 +237,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
                 }
             }
         }
-        Drawable bg = mContext.getResources().getDrawable(R.drawable.nav_bar_bg);
-        if(bg instanceof ColorDrawable) {
-            setBackground(new NavigationBarBackgroundDrawable(((ColorDrawable) bg).getColor()));
-        }
-        setBackgroundAlpha(mNavigationBarAlpha);
     }
 
     public void notifyScreenOn(boolean screenOn) {
@@ -314,26 +298,11 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
                             : (mVertical ? mBackLandIcon : mBackIcon));
         }
         setDisabledFlags(mDisabledFlags, true);
-        updateKeyguardAlpha();
     }
 
     @Override
     public void setDisabledFlags(int disabledFlags) {
         setDisabledFlags(disabledFlags, false);
-    }
-
-    private boolean isKeyguardEnabled() {
-        return ((mDisabledFlags & View.STATUS_BAR_DISABLE_HOME) != 0) && !((mDisabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0);
-    }
-
-    private void updateKeyguardAlpha() {
-        if(!isKeyguardEnabled() && (mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0) {
-            // keyboard up, always darken it
-            setBackgroundAlpha(1);
-        } else {
-            // if the user set alpha is below what the keygaurd alpha, match the keyguard alpha and be pretty
-            setBackgroundAlpha(isKeyguardEnabled() && mNavigationBarAlpha < KEYGUARD_ALPHA ? KEYGUARD_ALPHA : mNavigationBarAlpha);
-        }
     }
 
     public void setDisabledFlags(int disabledFlags, boolean force) {
@@ -346,7 +315,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         final boolean disableBack = ((disabledFlags & View.STATUS_BAR_DISABLE_BACK) != 0)
                 && ((mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) == 0);
         final boolean disableSearch = ((disabledFlags & View.STATUS_BAR_DISABLE_SEARCH) != 0);
-        final boolean keygaurdProbablyEnabled = isKeyguardEnabled();
 
         if (SLIPPERY_WHEN_DISABLED) {
             setSlippery(disableHome && disableRecent && disableBack && disableSearch);
@@ -369,8 +337,7 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         setButtonWithTagVisibility(NavigationButtons.ALWAYS_MENU, disableRecent ? View.INVISIBLE : View.VISIBLE);
         setButtonWithTagVisibility(NavigationButtons.MENU_BIG, disableRecent ? View.INVISIBLE : View.VISIBLE);
         setButtonWithTagVisibility(NavigationButtons.SEARCH, disableRecent ? View.INVISIBLE : View.VISIBLE);
-        getSearchLight().setVisibility(keygaurdProbablyEnabled ? View.VISIBLE : View.GONE);
-        updateKeyguardAlpha();
+        getSearchLight().setVisibility((disableHome && !disableSearch) ? View.VISIBLE : View.GONE);
     }
 
     public void setSlippery(boolean newSlippery) {
@@ -550,54 +517,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     */
         
 
-    class SettingsObserver extends ContentObserver {
-        SettingsObserver(Handler handler) {
-            super(handler);
-        }
-
-        void observe() {
-            ContentResolver resolver = mContext.getContentResolver();
-
-            resolver.registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NAVIGATION_BAR_ALPHA), false, this);
-            }
-            updateSettings();
-        }
-
-        @Override
-        public void onChange(boolean selfChange) {
-            updateSettings();
-        }
-    }
-
-    /*
-     * ]0 < alpha < 1[
-     */
-    private void setBackgroundAlpha(float alpha) {
-        Drawable bg = getBackground();
-        if(bg == null) return;
-
-        int a = (int) (alpha * 255);
-        if(bg instanceof NavigationBarBackgroundDrawable) {
-            int bgColor = ((ColorDrawable)bg).getColor();
-            int r = Color.red(bgColor);
-            int g = Color.green(bgColor);
-            int b = Color.blue(bgColor);
-            ((NavigationBarBackgroundDrawable) bg).setBgColor(Color.argb(a,r,g,b));
-        } else {
-             // probably a picture
-        }
-        bg.setAlpha(a);
-    }
-
-    protected void updateSettings() {
-        ContentResolver resolver = mContext.getContentResolver();
-
-        mNavigationBarAlpha = Settings.System.getFloat(resolver,
-                Settings.System.NAVIGATION_BAR_ALPHA, new Float(mContext.getResources().getInteger(R.integer.navigation_bar_transparency) / 255));
-
-    }
-
     private String getResourceName(int resId) {
         if (resId != 0) {
             final android.content.res.Resources res = mContext.getResources();
@@ -613,36 +532,6 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
 
     private void postCheckForInvalidLayout(final String how) {
         mHandler.obtainMessage(MSG_CHECK_INVALID_LAYOUT, 0, 0, how).sendToTarget();
-    }
-
-    private class NavigationBarBackgroundDrawable extends ColorDrawable {
-        int mBgColor;
-
-        public NavigationBarBackgroundDrawable(int bgColor) {
-            mBgColor = bgColor;
-        }
-
-        public void setBgColor(int color) {
-            mBgColor = color;
-        }
-
-        @Override
-        public void draw(Canvas canvas) {
-            canvas.drawColor(mBgColor, PorterDuff.Mode.SRC);
-        }
-
-        @Override
-        public void setAlpha(int alpha) {
-        }
-
-        @Override
-        public void setColorFilter(ColorFilter cf) {
-        }
-
-        @Override
-        public int getOpacity() {
-            return PixelFormat.TRANSLUCENT;
-        }
     }
 
     private static String visibilityToString(int vis) {

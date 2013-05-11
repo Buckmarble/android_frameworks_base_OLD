@@ -3567,13 +3567,6 @@ public final class Settings {
          */
         public static final String NOTIFICATION_SHORTCUTS_HIDE_CARRIER = "notification_shortcuts_hide_carrier";
 
-        /**
-         * Navigation bar alpha while in homescreen and lockscreen.
-         *
-         * @hide
-         */
-        public static final String NAVIGATION_BAR_ALPHA = "navigation_bar_alpha";
-
     }
 
     /**
