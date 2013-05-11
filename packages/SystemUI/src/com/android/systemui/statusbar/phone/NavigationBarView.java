@@ -259,6 +259,12 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
     }
 
     private void makeBar() {
+        Drawable bg = mContext.getResources().getDrawable(R.drawable.nav_bar_bg);
+        if(bg instanceof ColorDrawable) {
+            BackgroundAlphaColorDrawable bacd = new BackgroundAlphaColorDrawable(
+                    mNavigationBarColor > 0 ? mNavigationBarColor : ((ColorDrawable) bg).getColor());
+            setBackground(bacd);
+        }
         if(mTransparencyManager != null) {
             mTransparencyManager.update();
         }
@@ -551,7 +557,7 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         SettingsObserver(Handler handler) {
             super(handler);
         }
-    }
+
 
 
     /*

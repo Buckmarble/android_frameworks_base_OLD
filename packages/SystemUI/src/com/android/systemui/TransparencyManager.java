@@ -18,7 +18,7 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 
-import com.android.systemui.statusbar.phone.NavigationBarView;
+import com.android.systemui.statusbar.NavigationBarView;
 import com.android.systemui.statusbar.phone.PanelBar;
 
 import java.util.List;
