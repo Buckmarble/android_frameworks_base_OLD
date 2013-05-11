@@ -28,7 +28,11 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
@@ -246,7 +250,7 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         }
         Drawable bg = mContext.getResources().getDrawable(R.drawable.nav_bar_bg);
         if(bg instanceof ColorDrawable) {
-            setBackground(new BackgroundAlphaColorDrawable(((ColorDrawable) bg).getColor()));
+            setBackground(new NavigationBarBackgroundDrawable(((ColorDrawable) bg).getColor()));
         }
         setBackgroundAlpha(mNavigationBarAlpha);
     }
@@ -574,6 +578,15 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
         if(bg == null) return;
 
         int a = (int) (alpha * 255);
+        if(bg instanceof NavigationBarBackgroundDrawable) {
+            int bgColor = ((ColorDrawable)bg).getColor();
+            int r = Color.red(bgColor);
+            int g = Color.green(bgColor);
+            int b = Color.blue(bgColor);
+            ((NavigationBarBackgroundDrawable) bg).setBgColor(Color.argb(a,r,g,b));
+        } else {
+             // probably a picture
+        }
         bg.setAlpha(a);
     }
 
@@ -600,6 +613,36 @@ public class NavigationBarView extends LinearLayout implements BaseStatusBar.Nav
 
     private void postCheckForInvalidLayout(final String how) {
         mHandler.obtainMessage(MSG_CHECK_INVALID_LAYOUT, 0, 0, how).sendToTarget();
+    }
+
+    private class NavigationBarBackgroundDrawable extends ColorDrawable {
+        int mBgColor;
+
+        public NavigationBarBackgroundDrawable(int bgColor) {
+            mBgColor = bgColor;
+        }
+
+        public void setBgColor(int color) {
+            mBgColor = color;
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            canvas.drawColor(mBgColor, PorterDuff.Mode.SRC);
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+        }
+
+        @Override
+        public void setColorFilter(ColorFilter cf) {
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
     }
 
     private static String visibilityToString(int vis) {
