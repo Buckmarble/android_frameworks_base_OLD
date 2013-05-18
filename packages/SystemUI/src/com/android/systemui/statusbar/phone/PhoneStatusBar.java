@@ -103,7 +103,6 @@ import com.android.systemui.statusbar.policy.LocationController;
 import com.android.systemui.statusbar.policy.NetworkController;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
 import com.android.systemui.statusbar.policy.OnSizeChangedListener;
-import com.android.systemui.statusbar.policy.PieController.Position;
 import com.android.systemui.statusbar.policy.Prefs;
 
 import java.io.FileDescriptor;
