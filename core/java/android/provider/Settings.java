@@ -2685,6 +2685,16 @@ public final class Settings {
         public static final String PIE_SIZE = "pie_size";
 
         /**
+         * Sensitivity for triggering the pie controls.
+         *  1 = hard
+         *  ...
+         *  3 = easy
+         *  Default: 3
+         * @hide
+         */
+        public static final String PIE_SENSITIVITY = "pie_sensitivity";
+
+        /**
          * Whether to hide the notification screen after clicking on a widget
          * button
          *
