@@ -208,13 +208,6 @@ final class UiModeManagerService extends IUiModeManager.Stub {
 
         mTwilightService.registerListener(mTwilightListener, mHandler);
 
-        // Register settings observer and set initial preferences
-        SettingsObserver settingsObserver = new SettingsObserver(new Handler());
-        settingsObserver.observe();
-
-        mPowerManager = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
-        mWakeLock = mPowerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, TAG);
-
         mConfiguration.setToDefaults();
 
         updateUiMode();
