@@ -108,7 +108,7 @@ public class ResolverActivity extends AlertActivity implements AdapterView.OnIte
             CharSequence title, Intent[] initialIntents, List<ResolveInfo> rList,
             boolean alwaysUseOption) {
         if (Settings.Secure.getInt(getContentResolver(),
-                Settings.Secure.UI_INVERTED_MODE, 0) == 1) {
+                Settings.Secure.UI_INVERTED_MODE, 1) == 0) {
             setTheme(R.style.Theme_DeviceDefault_Dialog_Alert);
         } else {
             setTheme(R.style.Theme_DeviceDefault_Light_Dialog_Alert);

@@ -226,7 +226,7 @@ final class UiModeManagerService extends IUiModeManager.Stub {
 
     private void updateUiMode() {
         if (Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.UI_INVERTED_MODE, 0) == 1) {
+                Settings.Secure.UI_INVERTED_MODE, 1) == 0) {
             mDefaultUiModeType = mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_alternativeUiModeType);
         } else {
@@ -362,7 +362,7 @@ final class UiModeManagerService extends IUiModeManager.Stub {
     private void forceUiModeChangeForNonObservingMethods() {
         final boolean toggleUiMode = Settings.Secure.getInt(
                 mContext.getContentResolver(),
-                Settings.Secure.UI_MODE_IS_TOGGLED, 0) == 1;
+                Settings.Secure.UI_MODE_IS_TOGGLED, 1) == 0;
          Settings.Secure.putInt(mContext.getContentResolver(),
                 Settings.Secure.UI_MODE_IS_TOGGLED,
                 toggleUiMode ? 0 : 1);
